@@ -54,6 +54,8 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         JsonObject cvdRiskResultJson = cvdAssessmentJson.get("cvd_risk_result").getAsJsonObject();
         JsonObject guidelinesJson = cvdAssessmentJson.get("guidelines").getAsJsonObject();
         JsonObject bloodPressureJson = jsonObject.get("blood_pressure").getAsJsonObject();
+        JsonObject lifestyleJson = jsonObject.get("lifestyle").getAsJsonObject();
+
 
 
         BahmniObservation ohaAssessement = createObs("OHA Assessment", null, en, obsDatetime);
@@ -70,20 +72,9 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         }
         diabetesStatus.setValue((diabetesJson.get("status")).getAsBoolean());
 
-        if(diabetesJson.get("output")!=null){
-            JsonArray diabetesOutput = diabetesJson.get("output").getAsJsonArray();
-            if(diabetesOutput.size()==4){
-                BahmniObservation diabetesOutputObs= createObs("Output", diabetesObs, en, obsDatetime);
-                BahmniObservation diabetesOutputCode= createObs("Output Code", diabetesOutputObs, en, obsDatetime);
-                BahmniObservation diabetesOutputName= createObs("Output Name", diabetesOutputObs, en, obsDatetime);
-                BahmniObservation diabetesOutputColor= createObs("Output Color", diabetesOutputObs, en, obsDatetime);
-                BahmniObservation diabetesOutputDescription= createObs("Output Description", diabetesOutputObs, en, obsDatetime);
-                diabetesOutputCode.setValue(diabetesOutput.get(0).getAsString());
-                diabetesOutputName.setValue(diabetesOutput.get(1).getAsString());
-                diabetesOutputColor.setValue(diabetesOutput.get(2).getAsString());
-                diabetesOutputDescription.setValue(diabetesOutput.get(3).getAsString());
-            }
-        }
+        createObsForOutput(diabetesJson,diabetesObs,en,obsDatetime);
+
+
         BahmniObservation cvdAssessement = createObs("CVD Assessment", ohaAssessement, en, obsDatetime);
         BahmniObservation csdHighRiskCondition = createObs("High Risk Condition", cvdAssessement, en, obsDatetime);
         BahmniObservation csdHighRiskStatus = createObs("High Risk Condition Status", csdHighRiskCondition, en, obsDatetime);
@@ -129,25 +120,85 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         target.setValue(bloodPressureJson.get("target").getAsString());
         //set BP output
 
-        if(bloodPressureJson.get("output")!=null){
-            JsonArray bpOutput =bloodPressureJson.get("output").getAsJsonArray();
-            if(bpOutput.size()==4){
-                BahmniObservation bpOutputObs= createObs("Output", bloodPressure, en, obsDatetime);
-                BahmniObservation bpOutputCode= createObs("Output Code", bpOutputObs, en, obsDatetime);
-                BahmniObservation bpOutputName= createObs("Output Name", bpOutputObs, en, obsDatetime);
-                BahmniObservation bpOutputColor= createObs("Output Color", bpOutputObs, en, obsDatetime);
-                BahmniObservation bpOutputDescription= createObs("Output Description", bpOutputObs, en, obsDatetime);
-                bpOutputCode.setValue(bpOutput.get(0).getAsString());
-                bpOutputName.setValue(bpOutput.get(1).getAsString());
-                bpOutputColor.setValue(bpOutput.get(2).getAsString());
-                bpOutputDescription.setValue(bpOutput.get(3).getAsString());
-            }
-        }
+        createObsForOutput(bloodPressureJson,bloodPressure,en,obsDatetime);
 
+        //setting lifestyle
+        BahmniObservation lifestyleObs = createObs("Lifestyle", ohaAssessement, en, obsDatetime);
+        JsonObject bmiJson = lifestyleJson.get("bmi").getAsJsonObject();
+        createLifeStyleObs("BMI",lifestyleObs,en,obsDatetime,bmiJson);
+
+        JsonObject whrJson = lifestyleJson.get("whr").getAsJsonObject();
+        createLifeStyleObs("WHR",lifestyleObs,en,obsDatetime,whrJson);
+
+        JsonObject exerciseJson = lifestyleJson.get("exercise").getAsJsonObject();
+        createLifeStyleObs("Exercise",lifestyleObs,en,obsDatetime,exerciseJson);
+
+        JsonObject smokingJson = lifestyleJson.get("smoking").getAsJsonObject();
+        createLifeStyleObs("Smoking",lifestyleObs,en,obsDatetime,smokingJson);
 
 
     }
 
+    public void createLifeStyleObs(String lifeStyleConceptName, BahmniObservation lifestyleObs, BahmniEncounterTransaction en, Date obsDatetime, JsonObject jsonObject1){
+       // = "BMI";
+        BahmniObservation bmiObs = createObs(lifeStyleConceptName, lifestyleObs, en, obsDatetime);
+        BahmniObservation bmiTarget = createObs(lifeStyleConceptName+" Target", bmiObs, en, obsDatetime);
+
+        JsonElement valueJson = jsonObject1.get("value");
+        if(null!=valueJson && !valueJson.isJsonNull() && !valueJson.getAsString().isEmpty()){
+            BahmniObservation value = createObs(lifeStyleConceptName+" Value", bmiObs, en, obsDatetime);
+            value.setValue(jsonObject1.get("value").getAsInt());
+        }
+        JsonElement codeJson = jsonObject1.get("code");
+
+        if(!codeJson.isJsonNull() && !codeJson.getAsString().isEmpty()){
+            BahmniObservation code1 = createObs(lifeStyleConceptName+" Code", bmiObs, en, obsDatetime);
+            code1.setValue(jsonObject1.get("code").getAsString());
+        }
+
+        createTargetObs(jsonObject1,lifeStyleConceptName,bmiObs,en,obsDatetime);
+
+        createObsForOutput(jsonObject1,bmiObs,en,obsDatetime);
+    }
+
+    public void createTargetObs(JsonObject jsonObject1, String lifeStyleConceptName, BahmniObservation obs, BahmniEncounterTransaction en, Date obsDatetime){
+        if(lifeStyleConceptName.equals("Smoking")){
+            JsonElement targetJson = jsonObject1.get("smoking_calc");
+            if (!targetJson.isJsonNull() ) {
+                BahmniObservation target1 = createObs(  lifeStyleConceptName+" Target", obs, en, obsDatetime);
+                target1.setValue(jsonObject1.get("smoking_calc").getAsBoolean());
+            }
+
+        }else {
+            JsonElement targetJson = jsonObject1.get("target");
+            if (!targetJson.isJsonNull() && !targetJson.getAsString().isEmpty()) {
+                BahmniObservation target1 = createObs(lifeStyleConceptName + " Target", obs, en, obsDatetime);
+                target1.setValue(jsonObject1.get("target").getAsString());
+            }
+        }
+
+    }
+
+
+
+
+    private void createObsForOutput(JsonObject jsonObject,BahmniObservation parent,BahmniEncounterTransaction en,Date obsDatetime){
+        if(jsonObject.get("output")!=null && jsonObject.get("output").isJsonArray()){
+            JsonArray output =jsonObject.get("output").getAsJsonArray();
+            if(output.size()==4){
+                BahmniObservation outputObs= createObs("Output", parent, en, obsDatetime);
+                BahmniObservation code= createObs("Output Code", outputObs, en, obsDatetime);
+                BahmniObservation name= createObs("Output Name", outputObs, en, obsDatetime);
+                BahmniObservation color= createObs("Output Color", outputObs, en, obsDatetime);
+                BahmniObservation description= createObs("Output Description", outputObs, en, obsDatetime);
+                code.setValue(output.get(0).getAsString());
+                name.setValue(output.get(1).getAsString());
+                color.setValue(output.get(2).getAsString());
+                description.setValue(output.get(3).getAsString());
+            }
+        }
+
+    }
 
     private String callOhaAPI(OHARequest ohaRequest) throws IOException {
         Gson gson = new Gson();
@@ -176,11 +227,15 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         return content;
     }
      BahmniObservation createObs(String conceptName, BahmniObservation parent, BahmniEncounterTransaction encounterTransaction, Date obsDatetime) {
+         if(conceptName.equalsIgnoreCase("Smoking")){
+             conceptName="Smoking Response";
+         }
          Collection<BahmniObservation> observations= parent==null?encounterTransaction.getObservations():parent.getGroupMembers();
          BahmniObservation bahmniObservation = obsToOHARequestMapper.find(conceptName, observations, parent);
          if(bahmniObservation!=null){
              return  bahmniObservation;
          }
+
         Concept concept = Context.getConceptService().getConceptByName(conceptName);
         BahmniObservation newObservation = new BahmniObservation();
         newObservation.setConcept(new EncounterTransaction.Concept(concept.getUuid(), conceptName));
