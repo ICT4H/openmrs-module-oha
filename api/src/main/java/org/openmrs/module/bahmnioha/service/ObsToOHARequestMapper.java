@@ -11,5 +11,5 @@ import java.util.Collection;
  */
 public interface ObsToOHARequestMapper {
     OHARequest mapObsToOHARequest(BahmniEncounterTransaction encounterTransaction);
-    public BahmniObservation find(String conceptName, Collection<BahmniObservation> observations, BahmniObservation parent);
+    BahmniObservation find(String conceptName, Collection<BahmniObservation> observations, BahmniObservation parent);
 }

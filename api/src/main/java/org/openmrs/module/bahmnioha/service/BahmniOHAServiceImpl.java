@@ -33,7 +33,9 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         try {
             OHARequest ohaRequest = obsToOHARequestMapper.mapObsToOHARequest(en);
             String response = callOhaAPI(ohaRequest);
-            createAssesment(response,en);
+            if (null != response && response.length() > 0) {
+                createAssesment(response,en);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -51,7 +53,7 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         JsonObject diabetesJson = jsonObject.get("diabetes").getAsJsonObject();
         JsonObject cvdAssessmentJson = jsonObject.get("cvd_assessment").getAsJsonObject();
         JsonObject highRiskConditionJson = cvdAssessmentJson.get("high_risk_condition").getAsJsonObject();
-        JsonObject cvdRiskResultJson = cvdAssessmentJson.get("cvd_risk_result").getAsJsonObject();
+        JsonObject cvdRiskResultJson = (JsonObject) cvdAssessmentJson.get("cvd_risk_result");
         JsonObject guidelinesJson = cvdAssessmentJson.get("guidelines").getAsJsonObject();
         JsonObject bloodPressureJson = jsonObject.get("blood_pressure").getAsJsonObject();
         JsonObject lifestyleJson = jsonObject.get("lifestyle").getAsJsonObject();
@@ -90,26 +92,36 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         }
 
 
-        BahmniObservation cvdRiskResult = createObs("CVD Risk Result", cvdAssessement, en, obsDatetime);
-        BahmniObservation cvdRisk = createObs("CVD Risk", cvdRiskResult, en, obsDatetime);
-        cvdRisk.setValue(cvdRiskResultJson.get("risk").getAsInt());
-        if(!cvdRiskResultJson.get("risk_range").isJsonNull() &&  !cvdRiskResultJson.get("risk_range").getAsString().isEmpty()){
-            BahmniObservation cvdRiskRange = createObs("CVD Risk Range", cvdRiskResult, en, obsDatetime);
-            cvdRiskRange.setValue(cvdRiskResultJson.get("risk_range").getAsString());
+        if(cvdRiskResultJson!=null) {
+            BahmniObservation cvdRiskResult = createObs("CVD Risk Result", cvdAssessement, en, obsDatetime);
+            BahmniObservation cvdRisk = createObs("CVD Risk", cvdRiskResult, en, obsDatetime);
+            cvdRisk.setValue(cvdRiskResultJson.get("risk").getAsInt());
+            if (!cvdRiskResultJson.get("risk_range").isJsonNull() && !cvdRiskResultJson.get("risk_range").getAsString().isEmpty()) {
+                BahmniObservation cvdRiskRange = createObs("CVD Risk Range", cvdRiskResult, en, obsDatetime);
+                cvdRiskRange.setValue(cvdRiskResultJson.get("risk_range").getAsString());
+            }
         }
 
     //setting guidelines
 
         BahmniObservation guidelines = createObs("Guidelines", cvdAssessement, en, obsDatetime);
-        BahmniObservation label = createObs("Guidelines Label", guidelines, en, obsDatetime);
-        BahmniObservation score = createObs("Guidelines Score", guidelines, en, obsDatetime);
-        BahmniObservation interval = createObs("Guidelines, Follow Up Interval", guidelines, en, obsDatetime);
-        BahmniObservation message = createObs("Guidelines, Follow Up Message", guidelines, en, obsDatetime);
-        label.setValue(guidelinesJson.get("label").getAsString());
-        score.setValue(guidelinesJson.get("score").getAsString());
-        message.setValue(guidelinesJson.get("follow_up_message").getAsString());
-        interval.setValue(guidelinesJson.get("follow_up_interval").getAsInt());
 
+        if(guidelinesJson.get("label")!=null) {
+            BahmniObservation label = createObs("Guidelines Label", guidelines, en, obsDatetime);
+            label.setValue(guidelinesJson.get("label").getAsString());
+        }
+        if(guidelinesJson.get("score")!=null) {
+            BahmniObservation score = createObs("Guidelines Score", guidelines, en, obsDatetime);
+            score.setValue(guidelinesJson.get("score").getAsString());
+        }
+        if(guidelinesJson.get("follow_up_message")!=null) {
+            BahmniObservation message = createObs("Guidelines, Follow Up Message", guidelines, en, obsDatetime);
+            message.setValue(guidelinesJson.get("follow_up_message").getAsString());
+        }
+        if(guidelinesJson.get("follow_up_interval")!=null) {
+            BahmniObservation interval = createObs("Guidelines, Follow Up Interval", guidelines, en, obsDatetime);
+            interval.setValue(guidelinesJson.get("follow_up_interval").getAsInt());
+        }
         //setting BP
         BahmniObservation bloodPressure = createObs("Blood Pressure", ohaAssessement, en, obsDatetime);
         BahmniObservation bp = createObs("Blood Pressure Value", bloodPressure, en, obsDatetime);
@@ -135,6 +147,8 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
 
         JsonObject smokingJson = lifestyleJson.get("smoking").getAsJsonObject();
         createLifeStyleObs("Smoking",lifestyleObs,en,obsDatetime,smokingJson);
+
+
 
 
     }
@@ -202,30 +216,41 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
 
     private String callOhaAPI(OHARequest ohaRequest) throws IOException {
         Gson gson = new Gson();
-        String str=gson.toJson(ohaRequest);
-        // System.out.println(str);
-        URL url = new URL("http://128.199.199.111:8000/hearts");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setDoOutput(true);
-        connection.setDoInput(true);
-        connection.setRequestMethod("POST");
+        String str = gson.toJson(ohaRequest);
+        String heartsAssessmentUrl = Context.getAdministrationService().getGlobalProperty("hearts_assessment_url");
+        String personalAccessToken = Context.getAdministrationService().getGlobalProperty("personal_access_token");
 
-        connection.setRequestProperty("Content-Length", "" + Integer.toString(str.getBytes().length));
-        connection.addRequestProperty("Accept", "application/json");
-        connection.addRequestProperty("Content-Type", "application/json");
+        if (null != heartsAssessmentUrl && heartsAssessmentUrl.length() > 0) {
+            URL url = new URL(heartsAssessmentUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setRequestMethod("POST");
 
-        connection.connect();
+            connection.setRequestProperty("Content-Length", "" + Integer.toString(str.getBytes().length));
+            connection.addRequestProperty("Accept", "application/json");
+            connection.addRequestProperty("Content-Type", "application/json");
+            if (personalAccessToken != null && personalAccessToken.length() > 0){
+                connection.addRequestProperty("Authorization", "Bearer " + personalAccessToken);
+            }
 
-        DataOutputStream wr = new DataOutputStream(connection.getOutputStream ());
-        wr.writeBytes (str);
-        wr.flush ();
-        wr.close ();
-        System.out.println(connection.getResponseCode());
-        InputStream response = connection.getInputStream();
-        String content = new java.util.Scanner(response).useDelimiter("\\A").next();
-        System.out.println(content);
-        return content;
+            connection.connect();
+
+            DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+            wr.writeBytes(str);
+            wr.flush();
+            wr.close();
+            System.out.println(connection.getResponseCode());
+            if (connection.getResponseCode() == 200) {
+                InputStream response = connection.getInputStream();
+                String content = new java.util.Scanner(response).useDelimiter("\\A").next();
+                System.out.println(content);
+                return content;
+            }
+        }
+        return null;
     }
+
      BahmniObservation createObs(String conceptName, BahmniObservation parent, BahmniEncounterTransaction encounterTransaction, Date obsDatetime) {
          if(conceptName.equalsIgnoreCase("Smoking")){
              conceptName="Smoking Response";

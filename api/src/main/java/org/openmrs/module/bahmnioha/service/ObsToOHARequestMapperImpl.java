@@ -1,6 +1,8 @@
 package org.openmrs.module.bahmnioha.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.openmrs.Patient;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniEncounterTransaction;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
 import org.openmrs.module.bahmnioha.model.OHARequest;
@@ -15,13 +17,22 @@ public class ObsToOHARequestMapperImpl implements ObsToOHARequestMapper {
     public OHARequest mapObsToOHARequest(BahmniEncounterTransaction encounterTransaction) {
         Collection<BahmniObservation> observations = encounterTransaction.getObservations();
         OHARequest ohaRequest = new OHARequest();
-        setMesaurments(ohaRequest,observations);
+        setDemoGraphics(ohaRequest, encounterTransaction);
+        setMeasurements(ohaRequest,observations);
         setSmoking(ohaRequest,observations);
         setDietHistory(ohaRequest,observations);
         setPathology(ohaRequest,observations);
         setOthers(ohaRequest,observations);
 
         return ohaRequest;
+    }
+
+    private void setDemoGraphics(OHARequest ohaRequest, BahmniEncounterTransaction encounterTransaction) {
+        OHARequest.Demographics demographics = ohaRequest.new Demographics();
+        Patient patient = Context.getPatientService().getPatientByUuid(encounterTransaction.getPatientUuid());
+        demographics.setAge(patient.getAge());
+        demographics.setGender(patient.getGender());
+        ohaRequest.getData().getBody().setDemographics(demographics);
     }
 
     private void setOthers(OHARequest ohaRequest, Collection<BahmniObservation> observations) {
@@ -32,7 +43,7 @@ public class ObsToOHARequestMapperImpl implements ObsToOHARequestMapper {
 
     }
 
-    private void setMesaurments(OHARequest ohaRequest, Collection<BahmniObservation> observations) {
+    private void setMeasurements(OHARequest ohaRequest, Collection<BahmniObservation> observations) {
         BahmniObservation height = find("Height",observations,null);
         BahmniObservation weight = find("Weight",observations,null);
         BahmniObservation waist = find("Waist",observations,null);

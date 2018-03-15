@@ -182,10 +182,35 @@ public class Body{
 
 }
 
-class  Demographics {
-    String gender= "M";
-    int age= 40;
-    String occupation= "office_worker";
+public class  Demographics {
+
+    String gender;
+    int age;
+    String occupation;
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getOccupation() {
+        return occupation;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
 }
 
 public class   Measurements {
