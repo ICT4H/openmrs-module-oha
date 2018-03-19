@@ -32,5 +32,19 @@
 				
 	</mappingFiles>
 
+	<globalProperty>
+		<property>personal_access_token</property>
+		<defaultValue>eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImNiYWYyMTNhMmQxMTliYzRkOWZhOThlOGE3YTEwNjIxNjE2YWIxNDdlZjZkNDc2ZWZkMWM5MWI3ZTMxMTRlZmM5NjE1MDg4NzEyNjY1MjRhIn0.eyJhdWQiOiIxIiwianRpIjoiY2JhZjIxM2EyZDExOWJjNGQ5ZmE5OGU4YTdhMTA2MjE2MTZhYjE0N2VmNmQ0NzZlZmQxYz</defaultValue>
+		<description>
+access token		</description>
+	</globalProperty>
+
+	<globalProperty>
+		<property>hearts_assessment_url</property>
+		<defaultValue>http://128.199.199.111:8000/hearts</defaultValue>
+		<description>
+			hearts url		</description>
+	</globalProperty>
+
 </module>
 

@@ -59,7 +59,6 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         JsonObject lifestyleJson = jsonObject.get("lifestyle").getAsJsonObject();
 
 
-
         BahmniObservation ohaAssessement = createObs("OHA Assessment", null, en, obsDatetime);
         BahmniObservation diabetesObs = createObs("Diabetes", ohaAssessement, en, obsDatetime);
         BahmniObservation diabetesValue = createObs("Diabetes Value", diabetesObs, en, obsDatetime);
@@ -148,9 +147,19 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
         JsonObject smokingJson = lifestyleJson.get("smoking").getAsJsonObject();
         createLifeStyleObs("Smoking",lifestyleObs,en,obsDatetime,smokingJson);
 
+        JsonObject dietJson = lifestyleJson.get("diet").getAsJsonObject();
 
+        if(dietJson!=null && !dietJson.isJsonNull() ){
+            BahmniObservation dietObs = createObs("Diet", lifestyleObs, en, obsDatetime);
 
+            JsonElement dietCode = dietJson.get("code");
+            if(dietCode!=null && !dietCode.getAsString().isEmpty()){
+                BahmniObservation dietCodeObs = createObs("Diet Code", dietObs, en, obsDatetime);
+                dietCodeObs.setValue(dietCode.getAsString());
 
+            }
+            createObsForOutput(dietJson,dietObs,en,obsDatetime);
+        }
     }
 
     public void createLifeStyleObs(String lifeStyleConceptName, BahmniObservation lifestyleObs, BahmniEncounterTransaction en, Date obsDatetime, JsonObject jsonObject1){
