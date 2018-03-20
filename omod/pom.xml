@@ -14,8 +14,6 @@
 	<description>OMOD project for RulesEngine</description>
 
 	<dependencies>
-
-
 		<dependency>
 			<groupId>org.bahmni.module</groupId>
 			<artifactId>bahmni-migrator</artifactId>

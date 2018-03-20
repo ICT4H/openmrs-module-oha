@@ -11,6 +11,7 @@ import org.openmrs.module.bahmnioha.model.OHARequest;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 import org.springframework.stereotype.Component;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

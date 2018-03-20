@@ -145,8 +145,14 @@
             <version>1.9.13</version>
         </dependency>
 
-        <!-- End OpenMRS core -->
 
+        <!-- End OpenMRS core -->
+        <dependency>
+            <groupId>org.openmrs.module</groupId>
+            <artifactId>emrapi-condition-list</artifactId>
+            <version>1.21.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <repositories>

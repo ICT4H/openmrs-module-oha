@@ -1,15 +1,7 @@
 package org.openmrs.module.bahmnioha.model;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by dreddy on 13/03/18.
@@ -29,41 +21,43 @@ public class OHARequest {
 
     Data data = new Data();
 
-    public static void main(String... args) throws IOException {
-        OHARequest ohaRequest = new OHARequest();
-        Gson gson = new Gson();
-        String str=gson.toJson(ohaRequest);
-       // System.out.println(str);
-        URL url = new URL("http://128.199.199.111:8000/hearts");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setDoOutput(true);
-        connection.setDoInput(true);
-        connection.setRequestMethod("POST");
-
-        connection.setRequestProperty("Content-Length", "" + Integer.toString(str.getBytes().length));
-        connection.addRequestProperty("Accept", "application/json");
-        connection.addRequestProperty("Content-Type", "application/json");
-
-        connection.connect();
-
-        DataOutputStream wr = new DataOutputStream(connection.getOutputStream ());
-        wr.writeBytes (str);
-        wr.flush ();
-        wr.close ();
-        System.out.println(connection.getResponseCode());
-        InputStream response = connection.getInputStream();
-        String content = new java.util.Scanner(response).useDelimiter("\\A").next();
-        System.out.println(content);
-
-        JsonParser jsonParser = new JsonParser();
-        JsonElement jsonElement = jsonParser.parse(content);
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        JsonElement diabetes = jsonObject.get("diabetes");
-
-        System.out.println( diabetes.toString());
-
-
-    }
+//    public static void main(String... args) throws IOException {
+//        OHARequest ohaRequest = new OHARequest();
+//        Gson gson = new Gson();
+//        String str=gson.toJson(ohaRequest);
+//       // System.out.println(str);
+//        String token="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImNiYWYyMTNhMmQxMTliYzRkOWZhOThlOGE3YTEwNjIxNjE2YWIxNDdlZjZkNDc2ZWZkMWM5MWI3ZTMxMTRlZmM5NjE1MDg4NzEyNjY1MjRhIn0.eyJhdWQiOiIxIiwianRpIjoiY2JhZjIxM2EyZDExOWJjNGQ5ZmE5OGU4YTdhMTA2MjE2MTZhYjE0N2VmNmQ0NzZlZmQxYz";
+//        URL url = new URL("https://developer.openhealthalgorithms.org/api/bahmni/5aaf3d44575be/hearts");
+//        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+//        connection.setDoOutput(true);
+//        connection.setDoInput(true);
+//        connection.setRequestMethod("POST");
+//
+//        connection.setRequestProperty("Content-Length", "" + Integer.toString(str.getBytes().length));
+//        connection.addRequestProperty("Accept", "application/json");
+//        connection.addRequestProperty("Content-Type", "application/json");
+//        connection.addRequestProperty("Authorization","Bearer "+token);
+//
+//        connection.connect();
+//
+//        DataOutputStream wr = new DataOutputStream(connection.getOutputStream ());
+//        wr.writeBytes (str);
+//        wr.flush ();
+//        wr.close ();
+//        System.out.println(connection.getResponseCode());
+//        InputStream response = connection.getInputStream();
+//        String content = new java.util.Scanner(response).useDelimiter("\\A").next();
+//        System.out.println(content);
+//
+//        JsonParser jsonParser = new JsonParser();
+//        JsonElement jsonElement = jsonParser.parse(content);
+//        JsonObject jsonObject = jsonElement.getAsJsonObject();
+//        JsonElement diabetes = jsonObject.get("diabetes");
+//
+//        System.out.println( diabetes.toString());
+//
+//
+//    }
 
 
 public class Data {
@@ -96,8 +90,11 @@ public class Body{
     DietHistory diet_history = new  DietHistory();
     MedicalHistory medical_history = new MedicalHistory();
     Allergies allergies = new Allergies();
-    Object[] medications = new Object[]{};
+    List<String> medications = Collections.EMPTY_LIST;
     Pathology pathology = new Pathology();
+
+
+
     public String getRegion() {
         return region;
     }
@@ -162,11 +159,11 @@ public class Body{
         this.allergies = allergies;
     }
 
-    public Object[] getMedications() {
+    public List<String> getMedications() {
         return medications;
     }
 
-    public void setMedications(Object[] medications) {
+    public void setMedications(List<String>  medications) {
         this.medications = medications;
     }
 
@@ -328,8 +325,28 @@ public class DietHistory {
 
 }
 
-public class MedicalHistory{
-    Object[] conditions=new Object[]{};
+    public class MedicalHistory{
+        public List<String> getConditions() {
+            return conditions;
+        }
+
+        public void setConditions(List<String> conditions) {
+            this.conditions = conditions;
+        }
+
+        //        List<Condition> conditions= Collections.emptyList();
+//
+//    public List<Condition> getConditions() {
+//        return conditions;
+//    }
+//
+//    public void setConditions(List<Condition> conditions) {
+//        this.conditions = conditions;
+//    }
+        List<String> conditions = Collections.emptyList();
+
+
+
 }
 public class BSL {
     String   type="random";
@@ -429,6 +446,45 @@ public class Pathology{
     }
 
     public Pathology() {
+    }
+}
+
+public class Condition {
+        String name;
+        String startDate;
+        String status;
+        String referenceCode;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getReferenceCode() {
+        return referenceCode;
+    }
+
+    public void setReferenceCode(String referenceCode) {
+        this.referenceCode = referenceCode;
     }
 }
 }

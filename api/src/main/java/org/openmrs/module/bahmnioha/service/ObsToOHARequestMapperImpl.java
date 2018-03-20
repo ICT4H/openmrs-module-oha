@@ -1,13 +1,22 @@
 package org.openmrs.module.bahmnioha.service;
 
 import org.apache.commons.lang.StringUtils;
+import org.openmrs.Condition;
+import org.openmrs.DrugOrder;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniEncounterTransaction;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
 import org.openmrs.module.bahmnioha.model.OHARequest;
+import org.openmrs.module.emrapi.conditionslist.ConditionService;
+import org.openmrs.module.emrapi.conditionslist.contract.ConditionHistory;
+import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by dreddy on 14/03/18.
@@ -23,8 +32,45 @@ public class ObsToOHARequestMapperImpl implements ObsToOHARequestMapper {
         setDietHistory(ohaRequest,observations);
         setPathology(ohaRequest,observations);
         setOthers(ohaRequest,observations);
-
+        setConditions(ohaRequest, encounterTransaction);
+        setMedications(ohaRequest,encounterTransaction);
         return ohaRequest;
+    }
+
+    private void setMedications(OHARequest ohaRequest, BahmniEncounterTransaction encounterTransaction) {
+        List<EncounterTransaction.DrugOrder> drugOrders = encounterTransaction.getDrugOrders();
+        List<String> medications =new ArrayList<>();
+        for(EncounterTransaction.DrugOrder drugOrder:drugOrders){
+            medications.add(drugOrder.getDrug().getName());
+        }
+        ohaRequest.getData().getBody().setMedications(medications);
+    }
+
+    private void setConditions(OHARequest ohaRequest, BahmniEncounterTransaction encounterTransaction) {
+        Patient patient = Context.getPatientService().getPatientByUuid(encounterTransaction.getPatientUuid());
+
+       List<org.openmrs.ConditionHistory> conditionHistoryList = Context.getService(ConditionService.class).getConditionHistory(patient);
+       List<String> conditions = new ArrayList<>();
+       for(org.openmrs.ConditionHistory conditionHistory: conditionHistoryList){
+//           OHARequest.Condition condition = ohaRequest.new Condition();
+//           Condition condition1 = conditionHistory.getConditions().get(0);
+           conditions.add(conditionHistory.getCondition().getDisplayString());
+//           Date onsetDate = condition1.getOnsetDate();
+//           if(null!=onsetDate ) {
+//               SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+//               String date = sdf.format(onsetDate);
+//               condition.setStartDate(date);
+//           }
+           //condition.setStatus(condition1.getStatus().name());
+           //condition.setReferenceCode("AXXX");
+          // conditions.add(condition);
+       }
+
+       if(!conditions.isEmpty()){
+           ohaRequest.getData().getBody().getMedical_history().setConditions(conditions);
+       }
+
+
     }
 
     private void setDemoGraphics(OHARequest ohaRequest, BahmniEncounterTransaction encounterTransaction) {
