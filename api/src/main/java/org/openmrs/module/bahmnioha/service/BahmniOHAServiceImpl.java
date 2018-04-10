@@ -122,6 +122,36 @@ public class BahmniOHAServiceImpl implements BahmniOHAService {
             BahmniObservation interval = createObs("Guidelines, Follow Up Interval", guidelines, en, obsDatetime);
             interval.setValue(guidelinesJson.get("follow_up_interval").getAsInt());
         }
+
+
+        JsonObject managementJson = (JsonObject) guidelinesJson.get("management");
+
+        if(managementJson != null) {
+            BahmniObservation management = createObs("Management", guidelines, en, obsDatetime);
+
+            if(managementJson.get("lifestyle")!=null) {
+                BahmniObservation lifeStyle = createObs("Lifestyle Management", management, en, obsDatetime);
+                lifeStyle.setValue(managementJson.get("lifestyle").getAsString());
+            }
+
+            if(managementJson.get("lipids")!=null) {
+                BahmniObservation lipids = createObs("Lipids Management", management, en, obsDatetime);
+                lipids.setValue(managementJson.get("lipids").getAsString());
+            }
+
+            if(managementJson.get("refer")!=null) {
+                BahmniObservation referral = createObs("Referral", management, en, obsDatetime);
+                referral.setValue(managementJson.get("refer").getAsString());
+            }
+
+            if(managementJson.get("blood-pressure")!=null) {
+                BahmniObservation bpManagement = createObs("BP Management", management, en, obsDatetime);
+                bpManagement.setValue(managementJson.get("blood-pressure").getAsString());
+            }
+
+        }
+
+
         //setting BP
         BahmniObservation bloodPressure = createObs("Blood Pressure", ohaAssessement, en, obsDatetime);
         BahmniObservation bp = createObs("Blood Pressure Value", bloodPressure, en, obsDatetime);
